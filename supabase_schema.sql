@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
     role TEXT CHECK (role IN ('agent', 'supervisor')) DEFAULT 'agent',
+    is_active BOOLEAN DEFAULT true,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
@@ -49,17 +50,19 @@ CREATE TABLE IF NOT EXISTS public.work_orders (
     new_technician_assigned TEXT,
     new_work_order_no TEXT,
     new_solution TEXT,
+    scheduled_date DATE,     -- Primary target date for the call
+    completed_date TIMESTAMP WITH TIME ZONE, -- When the NPS was finally done
     status TEXT CHECK (status IN (
-        'pending',           -- Ready for initial Agent call
-        'callback',          -- Escalated, Complaint Received
-        'finding_root_cause',-- Supervisor investigation
+        'pending',           
+        'callback',          
+        'finding_root_cause',
         'internal_discussion',
         'waiting_parts',
         'technician_assigned',
         'visit_scheduled',
-        'issue_resolved',    -- Fixed by supervisor, ready for Agent re-call
-        'completed',         -- Final NPS survey done (standard)
-        'escalation_completed', -- Final NPS survey done (escalated)
+        'issue_resolved',    
+        'completed',         
+        'escalation_completed', 
         'refused'
     )) DEFAULT 'pending',
     attempts INTEGER DEFAULT 0,

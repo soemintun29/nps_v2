@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { SupervisorModule } from './components/SupervisorModule';
 import { AgentModule } from './components/AgentModule';
-import { LayoutDashboard, Users, ClipboardCheck, RefreshCw } from 'lucide-react';
+import { AuthModule } from './components/AuthModule';
+import { LayoutDashboard, RefreshCw, LogOut, User as UserIcon } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
 export interface Call {
@@ -22,15 +23,86 @@ export interface Call {
   newSolution?: string;
   newTechnicianAssigned?: string;
   status?: string;
+  attempts: number;
+  callbackAt?: string;
+  scheduledDate?: string;
+  serviceCenter?: string;
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'agent' | 'supervisor'>('agent');
+  const [session, setSession] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [calls, setCalls] = useState<Call[]>([]);
   const [allWorkOrderIds, setAllWorkOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchProfile();
+    } else {
+      setProfile(null);
+      setProfileLoading(false);
+    }
+  }, [session]);
+
+  const fetchProfile = async () => {
+    setProfileLoading(true);
+    try {
+      // 1. Force identify Supervisor by email (Master Override)
+      const userEmail = session.user.email?.toLowerCase() || '';
+      const isMasterSupervisor = userEmail.includes('winlai.mon') || 
+                                 userEmail.includes('mrsoemintun@gmail.com') ||
+                                 userEmail.includes('soemintun@vsk.com.mm');
+
+      // 2. Fetch profile from DB
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (!error && data) {
+        // If master email, ensure role is supervisor even if DB says otherwise
+        if (isMasterSupervisor) {
+          setProfile({ ...data, role: 'supervisor' });
+        } else {
+          setProfile(data);
+        }
+      } else {
+        // 3. Fallback: Create or Mock Profile
+        const name = userEmail.split('@')[0].replace('.', ' ');
+        const role = isMasterSupervisor ? 'supervisor' : 'agent';
+        
+        const mockProfile = { id: session.user.id, full_name: name, role: role };
+        setProfile(mockProfile);
+
+        // Try to save to DB in background
+        supabase.from('profiles').upsert(mockProfile).then(({ error }) => {
+          if (error) console.warn('Background profile sync failed:', error.message);
+        });
+      }
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const fetchCalls = async () => {
+    if (!session) return;
     setLoading(true);
     try {
       // 1. Fetch pending calls AND issues resolved by supervisor for the Agent queue
@@ -67,91 +139,99 @@ function App() {
           newWorkOrderNo: item.new_work_order_no,
           newSolution: item.new_solution,
           newTechnicianAssigned: item.new_technician_assigned,
-          status: item.status
+          status: item.status,
+          attempts: item.attempts || 0,
+          callbackAt: item.callback_at,
+          scheduledDate: item.scheduled_date,
+          serviceCenter: item.service_center
         }));
         setCalls(mappedCalls);
       }
-
-      if (allIdsData) {
-        setAllWorkOrderIds(allIdsData.map(item => item.work_order_no));
-      }
+      if (allIdsData) setAllWorkOrderIds(allIdsData.map(item => item.work_order_no));
     } catch (error) {
-      console.error('Error fetching calls:', error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCalls();
-  }, []);
+    if (session) fetchCalls();
+  }, [session]);
+
+  if (!session) return <AuthModule />;
+  
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#003b6d]/10 border-t-[#003b6d] rounded-full animate-spin" />
+          <p className="text-xs font-black text-[#003b6d] uppercase tracking-widest">Accessing Secure Gateway...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isSupervisor = profile?.role?.toLowerCase() === 'supervisor';
+  
+  if (session && profile) {
+    console.log('Active Session User:', session.user.email);
+    console.log('Fetched Profile Role:', profile.role);
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      {/* Sidebar / Header */}
       <header className="bg-[#003b6d] text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
               <span className="text-2xl font-black tracking-tighter mr-2">Midea</span>
-              <span className="text-sm font-medium border-l border-white/20 pl-2 uppercase tracking-widest text-[#0092d0]">NPS Survey</span>
+              <span className="text-[10px] font-black border-l border-white/20 pl-2 uppercase tracking-widest text-[#0092d0]">NPS Portal</span>
             </div>
             
-            <nav className="flex space-x-4">
-              <button
-                onClick={fetchCalls}
-                disabled={loading}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                title="Refresh Data"
-              >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <nav className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                <UserIcon className="w-3.5 h-3.5 text-[#0092d0]" />
+                <span className="text-[10px] font-black uppercase tracking-tighter">{profile?.full_name || session.user.email?.split('@')[0]}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${isSupervisor ? 'bg-red-500' : 'bg-[#0092d0]'}`}>{profile?.role}</span>
+              </div>
+
+              <button onClick={fetchCalls} disabled={loading} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
-              <button
-                onClick={() => setActiveTab('agent')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'agent' ? 'bg-[#0092d0] text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
+
+              <button 
+                onClick={() => supabase.auth.signOut()} 
+                className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-[10px] font-black uppercase transition-all"
               >
-                <ClipboardCheck className="w-4 h-4 mr-2" />
-                Agent
-              </button>
-              <button
-                onClick={() => setActiveTab('supervisor')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'supervisor' ? 'bg-[#0092d0] text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Supervisor
+                <LogOut className="w-3.5 h-3.5" /> Logout
               </button>
             </nav>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Dashboard / {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</span>
+          <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+            <LayoutDashboard className="w-3 h-3" />
+            <span>{isSupervisor ? 'Management Control' : 'Agent Operations'} / Dashboard</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-[#1e293b]">
-            {activeTab === 'agent' ? 'Happy Call Workflow' : 'Call Management & Analytics'}
+          <h1 className="text-3xl font-black text-[#1e293b] uppercase tracking-tight">
+            {isSupervisor ? 'Command Center' : 'Happy Call Queue'}
           </h1>
         </div>
 
-        {activeTab === 'agent' ? (
-          <AgentModule calls={calls} onRefresh={fetchCalls} />
-        ) : (
+        {isSupervisor ? (
           <SupervisorModule onUploadSuccess={fetchCalls} existingWorkOrders={allWorkOrderIds} />
+        ) : (
+          <AgentModule calls={calls} onRefresh={fetchCalls} />
         )}
       </main>
 
-      {/* Footer */}
       <footer className="mt-auto py-6 border-t bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-400 text-xs">
-          © 2026 Midea Global - Internal Quality Assurance Tool
+        <div className="max-w-7xl mx-auto px-4 text-center text-gray-300 text-[9px] font-bold uppercase tracking-widest">
+          © 2026 Midea Global Quality Assurance • Authorized Personnel Only
         </div>
       </footer>
     </div>
