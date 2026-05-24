@@ -67,7 +67,7 @@ export const ExecutiveDashboard: React.FC<DashboardProps> = ({ completedCalls })
         <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Overall NPS</p>
           <div className="flex items-baseline gap-2">
-            <h3 className={`text-4xl font-black ${stats.nps >= 50 ? 'text-green-500' : 'text-amber-500'}`}>{stats.nps}</h3>
+            <h3 className={`text-4xl font-black ${stats.nps >= 50 ? 'text-green-500' : 'text-amber-500'}`}>{stats.nps}%</h3>
             <span className="text-xs font-bold text-gray-400">Score</span>
           </div>
           <div className="mt-4 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
