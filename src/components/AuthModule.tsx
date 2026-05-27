@@ -13,16 +13,30 @@ export const AuthModule = () => {
     setLoading(true);
     setError(null);
 
-    // Append default domain if only username is provided
-    const userEmail = email.includes('@') ? email : `${email}@midea-internal.com`;
+    const trimmedInput = email.trim();
+    const trimmedPassword = password.trim();
+
+    // Append default domain ONLY if no '@' is present
+    const userEmail = trimmedInput.includes('@') 
+      ? trimmedInput 
+      : `${trimmedInput}@midea-internal.com`;
+
+    console.log('Attempting login for:', userEmail);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError, data } = await supabase.auth.signInWithPassword({
         email: userEmail,
-        password: password,
+        password: trimmedPassword,
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Login error details:', authError);
+        // Display specific error code for debugging
+        setError(`${authError.message} (Code: ${authError.status || 'AuthError'})`);
+        throw authError;
+      }
+      
+      console.log('Login successful for:', data.user?.email);
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {

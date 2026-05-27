@@ -1,0 +1,31 @@
+work_order_no,customer_name,customer_phone,customer_phone2,address,product_model,product_type,brand,assigned_agent_email,repair_date,warranty,total_fee,technician_name,service_center,solution,remark,Schedule Date
+WO2026101,Aung Aung,091234567,091111111,Yangon - Kamaryut,MSAF-12CRD,Aircon,Midea,yinmyothu@vsk.com.mm,20/05/2026,in,0,Kyaw Zayar,Yangon SC,Cleaned Filter,Morning Call,25/05/2026
+WO2026102,Maung Maung,092222222,,Mandalay - Chan Aye Thar Zan,GR-A28MS,Fridge,TOSHIBA,nody.shine@midea-internal.com,20/05/2026,out,15000,Moe Yan,Mandalay SC,Gas Refill,Call after 2PM,25/05/2026
+WO2026103,Daw Hla,093333333,,Yangon - Hlaing,SMAM223334,Washing Machine,Midea,maysaw.han@midea-internal.com,21/05/2026,in,0,Aung Thu,Yangon SC,Belt Replace,Urgent,25/05/2026
+WO2026104,U Ba,094444444,092222222,Bago - Main Road,Delta Pro,Power Station,EcoFlow,einandar.win@midea-internal.com,21/05/2026,in,0,San Min Tun,1Htike,Firmware Update,Customer is elderly,25/05/2026
+WO2026105,Kyaw Kyaw,095555555,,Yangon - Tamwe,MSAG-09CRDN1,Aircon,Midea,,22/05/2026,out,25000,Kyaw Zayar,Yangon SC,Capacitor Change,N/A,25/05/2026
+WO2026106,Ni Ni,096666666,,Mandalay - Pyi Gyi Tagon,GR-A28MS,Fridge,TOSHIBA,yinmyothu@vsk.com.mm,22/05/2026,in,0,Moe Yan,Mandalay SC,Fan Motor Fixed,Speak politely,25/05/2026
+WO2026107,Htoo Htoo,097777777,093333333,Yangon - North Okkalapa,MSAF-18CRD,Aircon,Midea,nody.shine@midea-internal.com,23/05/2026,out,35000,Aung Thu,Yangon SC,Installation,New unit,25/05/2026
+WO2026108,Su Su,098888888,,Taunggyi - East,SMAM112233,Washing Machine,Midea,maysaw.han@midea-internal.com,23/05/2026,in,0,San Min Tun,1Htike,Drain Pipe Fixed,N/A,25/05/2026
+WO2026109,Zaw Zaw,099999999,,Yangon - Sanchaung,River 2,Power Station,EcoFlow,einandar.win@midea-internal.com,24/05/2026,in,0,Kyaw Zayar,Yangon SC,Software Update,Call first,25/05/2026
+WO2026110,Moe Moe,091122334,,Mandalay - Amarapura,MSAG-12CRDN1,Aircon,Midea,,24/05/2026,out,45000,Moe Yan,Mandalay SC,Gas Leak Fixed,Busy customer,26/05/2026
+WO2026111,Phyu Phyu,092233445,094444444,Yangon - Insein,GR-A22MS,Fridge,TOSHIBA,yinmyothu@vsk.com.mm,20/05/2026,in,0,Aung Thu,Yangon SC,Thermostat Replace,N/A,25/05/2026
+WO2026112,Ko Lwin,093344556,,Mandalay - Mahar Aung Myay,SMAM334455,Washing Machine,Midea,nody.shine@midea-internal.com,20/05/2026,out,12000,Moe Yan,Mandalay SC,Leveling,Easy fix,25/05/2026
+WO2026113,Ma Aye,094455667,,Yangon - South Okkalapa,Delta Max,Power Station,EcoFlow,maysaw.han@midea-internal.com,21/05/2026,in,0,San Min Tun,1Htike,Cell Balance,Urgent,25/05/2026
+WO2026114,Bo Bo,095566778,095555555,Pyin Oo Lwin,MSAF-24CRD,Aircon,Midea,einandar.win@midea-internal.com,21/05/2026,in,0,Kyaw Zayar,Yangon SC,PCB Replace,Warranty claim,25/05/2026
+WO2026115,Thida,096677889,,Yangon - Lanmadaw,GR-A28MS,Fridge,TOSHIBA,,22/05/2026,out,20000,Aung Thu,Yangon SC,Defrost Timer,Call after 5PM,25/05/2026
+WO2026116,Kaung Kaung,097788990,,Mandalay - Chan Mya Tharzi,MSAG-18CRDN1,Aircon,Midea,yinmyothu@vsk.com.mm,22/05/2026,out,30000,Moe Yan,Mandalay SC,Gas Charge,High rise building,25/05/2026
+WO2026117,Wutyi,098899001,096666666,Yangon - Yankin,SMAM556677,Washing Machine,Midea,nody.shine@midea-internal.com,23/05/2026,in,0,San Min Tun,1Htike,Motor Fixed,Noise issue,25/05/2026
+WO2026118,Thet Thet,099900112,,Yangon - Bahan,River Pro,Power Station,EcoFlow,maysaw.han@midea-internal.com,23/05/2026,in,0,Kyaw Zayar,Yangon SC,Display Fixed,N/A,25/05/2026
+WO2026119,Min Min,091112223,,Mandalay - Aung Myay Tharzan,MSAF-09CRD,Aircon,Midea,einandar.win@midea-internal.com,24/05/2026,in,0,Moe Yan,Mandalay SC,Filter Clean,Standard service,25/05/2026
+WO2026120,Lin Lin,092223334,097777777,Yangon - Thingangyun,GR-A22MS,Fridge,TOSHIBA,,24/05/2026,out,25000,Aung Thu,Yangon SC,Gasket Replace,Door not closing,26/05/2026
+WO2026121,Sai Sai,093334445,,Yangon - Mayangone,MSAG-24CRDN1,Aircon,Midea,yinmyothu@vsk.com.mm,20/05/2026,out,55000,San Min Tun,1Htike,Inverter Fix,Expensive,25/05/2026
+WO2026122,Nan Nan,094445556,,Mandalay - Patheingyi,SMAM778899,Washing Machine,Midea,nody.shine@midea-internal.com,21/05/2026,in,0,Kyaw Zayar,Yangon SC,Sensor Replace,N/A,25/05/2026
+WO2026123,Khin Khin,095556667,098888888,Yangon - Mingalardon,Delta 2,Power Station,EcoFlow,maysaw.han@midea-internal.com,21/05/2026,in,0,Moe Yan,Mandalay SC,Handle Fixed,Drop case,25/05/2026
+WO2026124,Myo Myo,096667778,,Yangon - Dawbon,MSAF-12CRD,Aircon,Midea,einandar.win@midea-internal.com,22/05/2026,in,0,Aung Thu,Yangon SC,Remote Replace,N/A,25/05/2026
+WO2026125,Yin Yin,097778889,,Mandalay - Pyin Oo Lwin,GR-A28MS,Fridge,TOSHIBA,,22/05/2026,out,18000,San Min Tun,1Htike,Light Bulb,Small fix,25/05/2026
+WO2026126,Thu Thu,098889990,099999999,Yangon - Thaketa,MSAG-09CRDN1,Aircon,Midea,yinmyothu@vsk.com.mm,23/05/2026,in,0,Kyaw Zayar,Yangon SC,Coil Clean,Dirty unit,25/05/2026
+WO2026127,Tun Tun,099990001,,Yangon - Botataung,SMAM990011,Washing Machine,Midea,nody.shine@midea-internal.com,23/05/2026,out,32000,Moe Yan,Mandalay SC,Drum Balance,Heavy load,25/05/2026
+WO2026128,Kyaw Zaw,091112223,,Mandalay - Maha Aung Myay,River Max,Power Station,EcoFlow,maysaw.han@midea-internal.com,24/05/2026,in,0,Aung Thu,Yangon SC,Battery Check,N/A,25/05/2026
+WO2026129,Hlaing Hlaing,092223334,091234567,Yangon - Ahlone,MSAF-18CRD,Aircon,Midea,einandar.win@midea-internal.com,24/05/2026,out,40000,San Min Tun,1Htike,Gas Topup,Standard charge,25/05/2026
+WO2026130,Nilar,093334445,,Yangon - Dagon,GR-A22MS,Fridge,TOSHIBA,,24/05/2026,in,0,Kyaw Zayar,Yangon SC,Cleaning,N/A,26/05/2026

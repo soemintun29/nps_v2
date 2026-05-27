@@ -24,6 +24,7 @@ ADD COLUMN IF NOT EXISTS new_work_order_no TEXT,
 ADD COLUMN IF NOT EXISTS new_solution TEXT,
 ADD COLUMN IF NOT EXISTS escalation_note TEXT,
 ADD COLUMN IF NOT EXISTS attempts INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMP WITH TIME ZONE,
 ADD COLUMN IF NOT EXISTS scheduled_date DATE,
 ADD COLUMN IF NOT EXISTS completed_date TIMESTAMP WITH TIME ZONE;
 
@@ -37,6 +38,13 @@ CHECK (status IN ('pending', 'callback', 'finding_root_cause', 'internal_discuss
 2.  Enable **Email/Password** provider.
 3.  Set **Email Rate Limit** to a higher value (e.g., 30/hour) for team provisioning.
 4.  Standard Email domain used: `@midea-internal.com`.
+
+### 2.4 Production Redirect URLs
+After deploying to Vercel:
+1.  Copy your Vercel Deployment URL (e.g., `https://nps-survey-app.vercel.app`).
+2.  Go to **Supabase Dashboard > Authentication > URL Configuration**.
+3.  Add the Vercel URL to **Redirect URLs**.
+4.  Ensure **Site URL** is also set to the production URL.
 
 ---
 
@@ -76,5 +84,5 @@ When deploying to Vercel, you **must** add these Environment Variables in the Ve
 3.  **Callbacks:** Rescheduling for line drops or customer requests.
 
 ---
-**Version:** 1.0.0 (Release Candidate)
+**Version:** 2.0.0 (Production)
 **Author:** Astra (AI Product Engineer)

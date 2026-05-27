@@ -22,3 +22,16 @@ body {
 #root {
   width: 100%;
 }
+
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  body {
+    background-color: white;
+  }
+  .no-print, header, footer, nav {
+    display: none !important;
+  }
+}

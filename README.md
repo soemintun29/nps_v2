@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# Midea NPS Survey Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A professional quality assurance platform for managing Customer Satisfaction (NPS) surveys, specifically designed for Midea Aftersales operations.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### For Agents (Operations)
+- **Daily Call Queue:** Efficiently manage today's calls and future appointments.
+- **Guided Survey Script:** A step-by-step "Snake Workflow" with integrated Myanmar language scripts.
+- **Resolution Verification:** Real-time check if the customer's appliance is working correctly.
+- **NPS & Compliance Tracking:** Capture NPS scores and technician compliance (Uniform, Politeness, etc.).
+- **Escalation Trigger:** One-click escalation for unresolved customer issues.
+- **Smart Callbacks:** Schedule follow-up calls with automatic queue management.
 
-## React Compiler
+### For Supervisors (Management)
+- **Executive Dashboard:** Real-time visualization of NPS scores, CSAT, and branch rankings using Recharts.
+- **Data Ingestion:** Easy CSV upload with intelligent auto-mapping of fields.
+- **Technician Quality Directory:** In-depth scorecards for every technician, tracking historical performance.
+- **Escalation Management:** Track and resolve customer complaints with a dedicated lifecycle workflow.
+- **Team Provisioning:** Manage agent accounts and assign dedicated jobs.
+- **Master Reporting:** Export comprehensive NPS reports in CSV format.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4.
+- **Backend:** Supabase (Auth, PostgreSQL, RLS).
+- **Icons:** Lucide React.
+- **Charts:** Recharts.
+- **Data Processing:** PapaParse.
 
-## Expanding the ESLint configuration
+## 📋 Prerequisites
+- Node.js (v18+)
+- Supabase Project
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## ⚙️ Configuration
+Create a `.env` file in the root directory:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🏗️ Database Setup
+Run the SQL script found in `supabase_schema.sql` in your Supabase SQL Editor to:
+1. Create `profiles`, `work_orders`, and `surveys` tables.
+2. Setup Row Level Security (RLS) policies.
+3. Configure the `handle_new_user` trigger.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🧑‍💻 Development
+```bash
+npm install
+npm run dev
 ```
+
+---
+**Version:** 2.0.0 (Production)
+**Developed by:** Astra (Product Engineer)

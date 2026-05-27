@@ -1,0 +1,6 @@
+work_order_no,customer_name,customer_phone,customer_phone2,address,product_model,product_type,brand,assigned_agent_email,repair_date,warranty,total_fee,technician_name,service_center,solution,remark,Schedule Date
+WO2026001,Aung Ko Myat,9420107155,987654321,Alone,MSAF-12CRD,Aircon,Midea,yinmyothu@vsk.com.mm,10/05/2026,in,0,Kyaw Zayar,Yangon SC,Replaced Capacitor,Customer is very busy in morning,24/05/2026
+WO2026002,Wai Zin Tun,9795540551,876543219,Chanayetharzan,GAC123,Fridge,TOSHIBA,nody.shine@midea-internal.com,11/05/2026,out,15000,Moe Yan,Mandalay SC,Refilled Gas,Call after 2 PM,24/05/2026
+WO2026003,Hla Hla Win,92046419,654321987,Mayangone,SMAM223334,Washing Machine,EcoFlow,maysaw.han@midea-internal.com,12/05/2026,in,0,Aung Thu,Yangon SC,Cleaned Filter,N/A,24/05/2026
+WO2026004,Ko Ko,98467253,123456789,Shwepyithat,MSAG-09CRDN1,Aircon,Midea,einandar.win@midea-internal.com,15/05/2026,out,25000,San Min Tun,1Htike,Fixed Wiring,Elderly customer - speak slowly,24/05/2026
+WO2026005,Ma MA,987789987,12343321,( Miles,MSMSA112,Washig Machine,Midea,,20/05/2026,out,30000,Spaing Ko,Mandalay SC,Change Motor,Morning Call,24/05/2026

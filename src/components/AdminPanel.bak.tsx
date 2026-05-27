@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { 
-  UserPlus, Key, UserCircle, X, ToggleLeft, ToggleRight, 
-  Briefcase, Target, Settings, Plus, Trash2, Save, RefreshCcw,
-  ChevronDown, ChevronUp
-} from 'lucide-react';
+import { UserPlus, Key, UserCircle, X, ToggleLeft, ToggleRight, Briefcase } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -28,14 +24,6 @@ export const AdminPanel: React.FC = () => {
   const [assigningTo, setAssigningTo] = useState<string | null>(null);
   const [unassignedJobs, setUnassignedJobs] = useState<WorkOrder[]>([]);
   
-  // Settings State
-  const [npsTarget, setNpsTarget] = useState<string>('40');
-  const [taxonomy, setTaxonomy] = useState<any>(null);
-  const [activeTaxonomyTab, setActiveTaxonomyTab] = useState<'promoter' | 'detractor'>('promoter');
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [newItemNames, setNewItemNames] = useState<{[key: string]: string}>({});
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
@@ -74,89 +62,10 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
-  const fetchSettings = async () => {
-    try {
-      const { data, error } = await supabase.from('settings').select('*');
-      if (error) throw error;
-      
-      const target = data.find(s => s.key === 'nps_target');
-      if (target) setNpsTarget(target.value);
-      
-      const tax = data.find(s => s.key === 'drivers_taxonomy');
-      if (tax) setTaxonomy(tax.value);
-    } catch (err) {
-      console.error('Error fetching settings:', err);
-    }
-  };
-
   useEffect(() => {
     fetchUsers();
     fetchUnassignedJobs();
-    fetchSettings();
   }, []);
-
-  const saveNpsTarget = async () => {
-    try {
-      const { error } = await supabase
-        .from('settings')
-        .upsert({ key: 'nps_target', value: npsTarget });
-      if (error) throw error;
-      alert('NPS Target updated successfully');
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
-
-  const saveTaxonomy = async (updatedTaxonomy: any) => {
-    try {
-      const { error } = await supabase
-        .from('settings')
-        .upsert({ key: 'drivers_taxonomy', value: updatedTaxonomy });
-      if (error) throw error;
-      setTaxonomy(updatedTaxonomy);
-      alert('Taxonomy updated successfully');
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
-
-  const addCategory = () => {
-    if (!newCategoryName.trim()) return;
-    const updated = { ...taxonomy };
-    if (!updated[activeTaxonomyTab][newCategoryName]) {
-      updated[activeTaxonomyTab][newCategoryName] = [];
-      saveTaxonomy(updated);
-      setNewCategoryName('');
-    }
-  };
-
-  const removeCategory = (cat: string) => {
-    if (!window.confirm(`Are you sure you want to remove the entire category "${cat}"?`)) return;
-    const updated = { ...taxonomy };
-    delete updated[activeTaxonomyTab][cat];
-    saveTaxonomy(updated);
-  };
-
-  const addItem = (cat: string) => {
-    const itemName = newItemNames[cat];
-    if (!itemName?.trim()) return;
-    const updated = { ...taxonomy };
-    updated[activeTaxonomyTab][cat] = [...updated[activeTaxonomyTab][cat], itemName.trim()];
-    saveTaxonomy(updated);
-    setNewItemNames({ ...newItemNames, [cat]: '' });
-  };
-
-  const removeItem = (cat: string, index: number) => {
-    const updated = { ...taxonomy };
-    updated[activeTaxonomyTab][cat] = updated[activeTaxonomyTab][cat].filter((_: any, i: number) => i !== index);
-    saveTaxonomy(updated);
-  };
-
-  const toggleCategory = (cat: string) => {
-    setExpandedCategories(prev => 
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
-  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -362,110 +271,6 @@ export const AdminPanel: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* System Settings & Taxonomy Management */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* NPS Target Setting */}
-        <div className="lg:col-span-1 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-fit">
-          <div className="p-6 bg-gray-50 border-b flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#003b6d] text-white rounded-lg"><Target className="w-5 h-5" /></div>
-              <h3 className="font-black uppercase text-[#003b6d] text-sm">Target Management</h3>
-            </div>
-            <button onClick={saveNpsTarget} className="p-2 text-[#0092d0] hover:bg-[#0092d0]/10 rounded-lg transition-colors"><Save className="w-5 h-5" /></button>
-          </div>
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Global NPS Target (%)</label>
-              <div className="relative">
-                <input 
-                  type="number" 
-                  value={npsTarget} 
-                  onChange={(e) => setNpsTarget(e.target.value)}
-                  className="w-full p-4 bg-gray-50 border-2 rounded-2xl outline-none focus:border-[#0092d0] font-black text-2xl text-[#003b6d]"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-black text-gray-300">%</span>
-              </div>
-              <p className="mt-2 text-[10px] text-gray-400 font-bold uppercase italic">This value is used as the benchmark in the Executive Dashboard.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Taxonomy Management */}
-        <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="p-6 bg-gray-50 border-b flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#003b6d] text-white rounded-lg"><Settings className="w-5 h-5" /></div>
-              <h3 className="font-black uppercase text-[#003b6d] text-sm">Taxonomy Management</h3>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setActiveTaxonomyTab('promoter')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${activeTaxonomyTab === 'promoter' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>Promoters</button>
-              <button onClick={() => setActiveTaxonomyTab('detractor')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${activeTaxonomyTab === 'detractor' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-500'}`}>Detractors</button>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            {!taxonomy ? (
-              <div className="flex items-center justify-center p-12 text-gray-400 flex-col gap-4">
-                <RefreshCcw className="w-8 h-8 animate-spin" />
-                <p className="text-xs font-black uppercase">Loading taxonomy...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Add New Category */}
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="New Category Name (L1)..." 
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    className="flex-1 p-3 bg-gray-50 border-2 rounded-xl outline-none focus:border-[#0092d0] text-sm font-bold"
-                  />
-                  <button onClick={addCategory} className="px-6 bg-[#0092d0] text-white rounded-xl font-black uppercase text-[10px] hover:bg-[#003b6d] transition-all flex items-center gap-2"><Plus className="w-4 h-4" /> Add</button>
-                </div>
-
-                <div className="space-y-3">
-                  {Object.entries(taxonomy[activeTaxonomyTab]).map(([cat, items]: [string, any]) => (
-                    <div key={cat} className="border-2 border-gray-50 rounded-2xl overflow-hidden">
-                      <div className="p-4 bg-gray-50/50 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => toggleCategory(cat)}>
-                        <div className="flex items-center gap-3">
-                          {expandedCategories.includes(cat) ? <ChevronUp className="w-4 h-4 text-[#0092d0]" /> : <ChevronDown className="w-4 h-4 text-[#0092d0]" />}
-                          <span className="font-black text-sm text-gray-700 uppercase">{cat}</span>
-                          <span className="bg-white px-2 py-0.5 rounded-full text-[9px] font-black text-[#0092d0] border">{items.length} Items</span>
-                        </div>
-                        <button onClick={(e) => { e.stopPropagation(); removeCategory(cat); }} className="p-2 text-red-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                      
-                      {expandedCategories.includes(cat) && (
-                        <div className="p-4 bg-white space-y-3 border-t-2 border-gray-50">
-                          <div className="flex gap-2">
-                            <input 
-                              type="text" 
-                              placeholder="Add feedback item (L2)..." 
-                              value={newItemNames[cat] || ''}
-                              onChange={(e) => setNewItemNames({...newItemNames, [cat]: e.target.value})}
-                              className="flex-1 p-2 bg-gray-50 border-2 rounded-lg outline-none focus:border-[#0092d0] text-xs font-bold"
-                            />
-                            <button onClick={() => addItem(cat)} className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"><Plus className="w-4 h-4" /></button>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {items.map((item: string, idx: number) => (
-                              <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg group">
-                                <span className="text-[11px] font-bold text-gray-600">{item}</span>
-                                <button onClick={() => removeItem(cat, idx)} className="text-red-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"><X className="w-3 h-3" /></button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

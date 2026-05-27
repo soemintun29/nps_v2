@@ -15,6 +15,7 @@ export interface Call {
   product: string;
   warranty?: string;
   totalFee?: string;
+  brand?: string;
   solution?: string;
   remark?: string;
   escalationNote?: string;
@@ -24,6 +25,7 @@ export interface Call {
   newTechnicianAssigned?: string;
   status?: string;
   attempts: number;
+  lastAttemptAt?: string;
   callbackAt?: string;
   scheduledDate?: string;
   serviceCenter?: string;
@@ -37,65 +39,83 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (session) {
-      fetchProfile();
-    } else {
+  const fetchProfile = async (currentSession: any) => {
+    if (!currentSession?.user) {
       setProfile(null);
       setProfileLoading(false);
+      return;
     }
-  }, [session]);
 
-  const fetchProfile = async () => {
     setProfileLoading(true);
     try {
-      // 1. Force identify Supervisor by email (Master Override)
-      const userEmail = session.user.email?.toLowerCase() || '';
-      const isMasterSupervisor = userEmail.includes('winlai.mon') || 
-                                 userEmail.includes('mrsoemintun@gmail.com') ||
-                                 userEmail.includes('soemintun@vsk.com.mm');
+      const userEmail = currentSession.user.email?.toLowerCase() || '';
+      const supervisorEmails = [
+        'mrsoemintun@gmail.com',
+        'yinmyothu@vsk.com.mm',
+        'winlai.mon@vsk.com.mm',
+        'soemintun@vsk.com.mm',
+        'ygnmideacare@vsk.com.mm'
+      ];
+      const isMasterSupervisor = supervisorEmails.includes(userEmail);
 
-      // 2. Fetch profile from DB
+      console.log('Fetching profile for:', userEmail, 'with ID:', currentSession.user.id);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session.user.id)
-        .single();
+        .eq('id', currentSession.user.id);
       
-      if (!error && data) {
-        // If master email, ensure role is supervisor even if DB says otherwise
-        if (isMasterSupervisor) {
-          setProfile({ ...data, role: 'supervisor' });
-        } else {
-          setProfile(data);
-        }
-      } else {
-        // 3. Fallback: Create or Mock Profile
-        const name = userEmail.split('@')[0].replace('.', ' ');
-        const role = isMasterSupervisor ? 'supervisor' : 'agent';
+      if (error) {
+        console.error('Supabase profile query error:', error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        const userProfile = data[0];
+        console.log('Profile loaded from DB:', userProfile.full_name);
         
-        const mockProfile = { id: session.user.id, full_name: name, role: role };
+        // If full_name is missing/null in DB, generate it from email
+        if (!userProfile.full_name) {
+          const generatedName = userEmail.split('@')[0]
+            .split('.')
+            .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
+            .join(' ');
+          userProfile.full_name = generatedName;
+          console.log('DB name was null, using generated:', generatedName);
+        }
+
+        setProfile(isMasterSupervisor ? { ...userProfile, role: 'supervisor' } : userProfile);
+      } else {
+        console.warn('No profile found in DB for ID:', currentSession.user.id);
+        // Fallback: Generate name from email
+        let generatedName = userEmail.split('@')[0];
+        
+        if (generatedName.includes('.')) {
+          generatedName = generatedName.split('.')
+            .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
+            .join(' ');
+        } else {
+          generatedName = generatedName.charAt(0).toUpperCase() + generatedName.slice(1);
+          if (generatedName.toLowerCase() === 'yinmyothu') generatedName = 'Yin Myo Thu';
+        }
+        
+        const mockProfile = { 
+          id: currentSession.user.id, 
+          full_name: generatedName, 
+          role: isMasterSupervisor ? 'supervisor' : 'agent',
+          email: userEmail 
+        };
+        
+        console.log('Using generated profile:', mockProfile.full_name);
         setProfile(mockProfile);
 
-        // Try to save to DB in background
+        // Background sync
         supabase.from('profiles').upsert(mockProfile).then(({ error }) => {
-          if (error) console.warn('Background profile sync failed:', error.message);
+          if (error) console.warn('Sync error:', error.message);
         });
       }
-    } catch (error) {
-      console.error('Profile fetch error:', error);
+    } catch (err) {
+      console.error('Fatal fetch error:', err);
     } finally {
       setProfileLoading(false);
     }
@@ -105,16 +125,14 @@ function App() {
     if (!session) return;
     setLoading(true);
     try {
-      // 1. Fetch pending calls AND issues resolved by supervisor for the Agent queue
       const { data: pendingData, error: pendingError } = await supabase
         .from('work_orders')
         .select('*')
-        .in('status', ['pending', 'issue_resolved'])
+        .in('status', ['pending', 'issue_resolved', 'callback'])
         .order('created_at', { ascending: false });
 
       if (pendingError) throw pendingError;
 
-      // 2. Fetch ALL work order numbers for Supervisor deduplication
       const { data: allIdsData, error: allIdsError } = await supabase
         .from('work_orders')
         .select('work_order_no');
@@ -122,29 +140,35 @@ function App() {
       if (allIdsError) throw allIdsError;
 
       if (pendingData) {
-        const mappedCalls: Call[] = pendingData.map(item => ({
-          id: item.work_order_no,
-          customerName: item.customer_name,
-          phone: item.customer_phone,
-          phone2: item.customer_phone2,
-          address: item.address,
-          productModel: item.product_model,
-          product: item.product_type,
-          warranty: item.warranty,
-          totalFee: item.total_fee,
-          solution: item.solution,
-          remark: item.remark,
-          escalationNote: item.escalation_note,
-          technicianName: item.technician_name,
-          newWorkOrderNo: item.new_work_order_no,
-          newSolution: item.new_solution,
-          newTechnicianAssigned: item.new_technician_assigned,
-          status: item.status,
-          attempts: item.attempts || 0,
-          callbackAt: item.callback_at,
-          scheduledDate: item.scheduled_date,
-          serviceCenter: item.service_center
-        }));
+        // Filter out escalated calls from the agent's queue. 
+        // Status 'callback' should only show for agents if it's a standard line-drop (no escalation note).
+        const mappedCalls: Call[] = pendingData
+          .filter(item => item.status !== 'callback' || !item.escalation_note)
+          .map(item => ({
+            id: item.work_order_no,
+            customerName: item.customer_name,
+            phone: item.customer_phone,
+            phone2: item.customer_phone2,
+            address: item.address,
+            productModel: item.product_model,
+            product: item.product_type,
+            warranty: item.warranty,
+            totalFee: item.total_fee,
+            brand: item.brand,
+            solution: item.solution,
+            remark: item.remark,
+            escalationNote: item.escalation_note,
+            technicianName: item.technician_name,
+            newWorkOrderNo: item.new_work_order_no,
+            newSolution: item.new_solution,
+            newTechnicianAssigned: item.new_technician_assigned,
+            status: item.status,
+            attempts: item.attempts || 0,
+            lastAttemptAt: item.last_attempt_at,
+            callbackAt: item.callback_at,
+            scheduledDate: item.scheduled_date,
+            serviceCenter: item.service_center
+          }));
         setCalls(mappedCalls);
       }
       if (allIdsData) setAllWorkOrderIds(allIdsData.map(item => item.work_order_no));
@@ -156,32 +180,46 @@ function App() {
   };
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      if (currentSession) fetchProfile(currentSession);
+      else setProfileLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
+      if (currentSession) fetchProfile(currentSession);
+      else {
+        setProfile(null);
+        setProfileLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (session) fetchCalls();
   }, [session]);
 
-  if (!session) return <AuthModule />;
-  
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#003b6d]/10 border-t-[#003b6d] rounded-full animate-spin" />
-          <p className="text-xs font-black text-[#003b6d] uppercase tracking-widest">Accessing Secure Gateway...</p>
+          <p className="text-[10px] font-black text-[#003b6d] uppercase tracking-widest">Accessing Secure Gateway...</p>
         </div>
       </div>
     );
   }
 
+  if (!session) return <AuthModule />;
+
   const isSupervisor = profile?.role?.toLowerCase() === 'supervisor';
-  
-  if (session && profile) {
-    console.log('Active Session User:', session.user.email);
-    console.log('Fetched Profile Role:', profile.role);
-  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <header className="bg-[#003b6d] text-white shadow-lg sticky top-0 z-50">
+      <header className="bg-[#003b6d] text-white shadow-lg sticky top-0 z-50 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
@@ -211,8 +249,8 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 print:p-0 print:max-w-none">
+        <div className="mb-8 print:hidden">
           <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
             <LayoutDashboard className="w-3 h-3" />
             <span>{isSupervisor ? 'Management Control' : 'Agent Operations'} / Dashboard</span>
@@ -225,11 +263,15 @@ function App() {
         {isSupervisor ? (
           <SupervisorModule onUploadSuccess={fetchCalls} existingWorkOrders={allWorkOrderIds} />
         ) : (
-          <AgentModule calls={calls} onRefresh={fetchCalls} />
+          <AgentModule 
+            calls={calls} 
+            onRefresh={fetchCalls} 
+            agentName={profile?.full_name} 
+          />
         )}
       </main>
 
-      <footer className="mt-auto py-6 border-t bg-white">
+      <footer className="mt-auto py-6 border-t bg-white print:hidden">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-300 text-[9px] font-bold uppercase tracking-widest">
           © 2026 Midea Global Quality Assurance • Authorized Personnel Only
         </div>
