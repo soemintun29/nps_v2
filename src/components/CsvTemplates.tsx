@@ -17,7 +17,7 @@ export const CsvTemplates: React.FC = () => {
     ];
     
     const csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

@@ -476,7 +476,7 @@ export const SupervisorModule: React.FC<SupervisorModuleProps> = ({ onUploadSucc
                 c.work_order_no, c.customer_name, c.customer_phone, c.customer_phone2 || 'N/A', `"${c.address}"`, c.product_type, c.product_model, c.technician_name, c.service_center, c.agent_name, c.status === 'refused' ? 'REFUSED' : c.nps_score, c.status === 'refused' ? 'Refused' : (c.is_working ? 'Fixed' : 'Failed'), getAttemptLabel(c.attempts + 1), `"${c.driver_l1}"`, `"${c.driver_l2}"`, `"${c.verbatim}"`, c.completed_date ? new Date(c.completed_date).toLocaleString() : 'N/A'
               ]);
               const csvContent = [csvHeaders, ...csvRows].map(r => r.join(',')).join('\n');
-              const blob = new Blob([csvContent], { type: 'text/csv' });
+              const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement('a'); a.href = url; a.download = `nps_master_report_${new Date().toISOString().split('T')[0]}.csv`; a.click();
             }} className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-bold shadow-lg"><Download className="w-4 h-4 mr-2" />Export Master Report</button>

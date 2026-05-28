@@ -121,15 +121,26 @@ function App() {
     }
   };
 
-  const fetchCalls = async () => {
-    if (!session) return;
+  const fetchCalls = async (profileOverride?: any) => {
+    const currentProfile = profileOverride || profile;
+    if (!session || !currentProfile) return;
+    
     setLoading(true);
     try {
-      const { data: pendingData, error: pendingError } = await supabase
+      const isAgent = currentProfile.role?.toLowerCase() === 'agent';
+      
+      let query = supabase
         .from('work_orders')
         .select('*')
         .in('status', ['pending', 'issue_resolved', 'callback'])
         .order('created_at', { ascending: false });
+
+      // If agent, only show assigned work orders
+      if (isAgent) {
+        query = query.eq('assigned_to', currentProfile.id);
+      }
+
+      const { data: pendingData, error: pendingError } = await query;
 
       if (pendingError) throw pendingError;
 
@@ -199,8 +210,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (session) fetchCalls();
-  }, [session]);
+    if (session && profile) {
+      fetchCalls();
+    }
+  }, [session, profile]);
 
   if (profileLoading) {
     return (

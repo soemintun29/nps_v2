@@ -148,6 +148,7 @@ BEGIN
     new.id, 
     CASE 
       WHEN new.email = 'yinmyothu@vsk.com.mm' THEN 'Yin Myo Thu'
+      WHEN new.email = 'toshibacare@vsk.com.mm' THEN 'Nody Shine'
       WHEN new.email = 'mrsoemintun@gmail.com' THEN 'Soe Min Tun'
       WHEN new.email = 'ygnmideacare@vsk.com.mm' THEN 'Win Lai Mon'
       WHEN new.email = 'winlai.mon@vsk.com.mm' THEN 'Win Lai Mon'
@@ -203,9 +204,9 @@ CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT USING (auth
 DROP POLICY IF EXISTS "Supervisors manage work orders" ON public.work_orders;
 CREATE POLICY "Supervisors manage work orders" ON public.work_orders FOR ALL USING (public.is_supervisor()) WITH CHECK (public.is_supervisor());
 DROP POLICY IF EXISTS "Agents view assigned jobs" ON public.work_orders;
-CREATE POLICY "Agents view assigned jobs" ON public.work_orders FOR SELECT USING (auth.uid() = assigned_to OR assigned_to IS NULL);
+CREATE POLICY "Agents view assigned jobs" ON public.work_orders FOR SELECT USING (auth.uid() = assigned_to);
 DROP POLICY IF EXISTS "Agents update assigned jobs" ON public.work_orders;
-CREATE POLICY "Agents update assigned jobs" ON public.work_orders FOR UPDATE USING (auth.uid() = assigned_to OR assigned_to IS NULL) WITH CHECK (auth.uid() = assigned_to OR assigned_to IS NULL);
+CREATE POLICY "Agents update assigned jobs" ON public.work_orders FOR UPDATE USING (auth.uid() = assigned_to) WITH CHECK (auth.uid() = assigned_to);
 
 -- Surveys
 DROP POLICY IF EXISTS "Supervisors view all surveys" ON public.surveys;
@@ -225,6 +226,7 @@ SELECT
     id, 
     CASE 
       WHEN email = 'yinmyothu@vsk.com.mm' THEN 'Yin Myo Thu'
+      WHEN email = 'toshibacare@vsk.com.mm' THEN 'Nody Shine'
       WHEN email = 'mrsoemintun@gmail.com' THEN 'Soe Min Tun'
       WHEN email = 'ygnmideacare@vsk.com.mm' THEN 'Win Lai Mon'
       WHEN email = 'winlai.mon@vsk.com.mm' THEN 'Win Lai Mon'

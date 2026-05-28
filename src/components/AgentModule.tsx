@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, ArrowLeft, User, Package, ChevronRight, ClipboardCheck, AlertCircle, Calendar, Clock } from 'lucide-react';
+import { Phone, ArrowLeft, User, Package, ChevronRight, ClipboardCheck, AlertCircle, Calendar, Clock, CheckCircle2, XCircle, ListTodo } from 'lucide-react';
 import type { Call } from '../App';
 import { supabase } from '../lib/supabase';
 import { DRIVERS } from '../lib/drivers';
@@ -22,6 +22,7 @@ export const AgentModule: React.FC<AgentModuleProps> = ({ calls, onRefresh, agen
   const [callbackTime, setCallbackTime] = useState('');
   const [agentTab, setAgentTab] = useState<'today' | 'upcoming'>('today');
   const [driversTaxonomy, setDriversTaxonomy] = useState<any>(DRIVERS);
+  const [dailyStats, setDailyStats] = useState({ completed: 0, refused: 0 });
   
   const [formData, setFormData] = useState({
     resolution: '',
@@ -44,6 +45,38 @@ export const AgentModule: React.FC<AgentModuleProps> = ({ calls, onRefresh, agen
     escProblemType: '',
   });
 
+  const fetchDailyStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      const { count: completedCount } = await supabase
+        .from('work_orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('assigned_to', user.id)
+        .eq('status', 'completed')
+        .gte('completed_date', todayISO);
+
+      const { count: refusedCount } = await supabase
+        .from('work_orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('assigned_to', user.id)
+        .eq('status', 'refused')
+        .gte('completed_date', todayISO);
+
+      setDailyStats({
+        completed: completedCount || 0,
+        refused: refusedCount || 0
+      });
+    } catch (err) {
+      console.error('Error fetching daily stats:', err);
+    }
+  };
+
   useEffect(() => {
     const fetchTaxonomy = async () => {
       try {
@@ -54,7 +87,8 @@ export const AgentModule: React.FC<AgentModuleProps> = ({ calls, onRefresh, agen
       }
     };
     fetchTaxonomy();
-  }, []);
+    fetchDailyStats();
+  }, [calls]);
 
   const handleNext = () => setStep(step + 1);
   const handlePrev = () => setStep(step - 1);
@@ -704,8 +738,60 @@ export const AgentModule: React.FC<AgentModuleProps> = ({ calls, onRefresh, agen
     );
   }
 
+  const todayRemainingCount = calls.filter(call => {
+    const isFutureCallback = call.callbackAt && new Date(call.callbackAt) > new Date(new Date().setHours(23,59,59,999));
+    const isScheduledFuture = call.scheduledDate && !isTodayOrPast(call.scheduledDate);
+    return !isFutureCallback && !isScheduledFuture;
+  }).length;
+
+  const totalAssignedToday = todayRemainingCount + dailyStats.completed + dailyStats.refused;
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
+      
+      {/* Daily Performance Stats Bar */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group">
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Assigned</p>
+            <p className="text-2xl font-black text-[#003b6d]">{totalAssignedToday}</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[#0092d0] group-hover:scale-110 transition-transform">
+            <ListTodo className="w-5 h-5" />
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group">
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Completed</p>
+            <p className="text-2xl font-black text-green-600">{dailyStats.completed}</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group">
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Rejected</p>
+            <p className="text-2xl font-black text-red-500">{dailyStats.refused}</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+            <XCircle className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group">
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Remaining</p>
+            <p className="text-2xl font-black text-amber-500">{todayRemainingCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h2 className="text-2xl font-black text-[#003b6d] uppercase tracking-tight">Call Schedule</h2>
         <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
