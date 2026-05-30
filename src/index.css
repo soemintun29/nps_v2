@@ -9,7 +9,7 @@
 }
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Noto Sans Myanmar', 'Myanmar Text', 'Pyidaungsu', 'Padauk', 'TharLon', system-ui, -apple-system, sans-serif;
   background-color: #f8fafc;
   color: #1e293b;
 }

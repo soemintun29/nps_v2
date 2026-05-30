@@ -205,7 +205,11 @@ export const SupervisorModule: React.FC<SupervisorModuleProps> = ({ onUploadSucc
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
+    if (file) Papa.parse(file, { 
+      header: true, 
+      skipEmptyLines: true, 
+      encoding: "UTF-8",
+      complete: (results) => {
       if (results.data.length > 0) { 
         const csvHeaders = Object.keys(results.data[0] as object);
         setHeaders(csvHeaders); 
