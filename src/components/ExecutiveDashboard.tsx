@@ -89,6 +89,9 @@ export const ExecutiveDashboard: React.FC<DashboardProps> = ({ completedCalls, a
     const trendData = Object.entries(monthlyGroups)
       .map(([name, data]) => ({
         name,
+        promoters: data.promoters,
+        detractors: data.detractors,
+        total: data.total,
         nps: Math.round(((data.promoters - data.detractors) / data.total) * 100),
         sortKey: data.sortKey
       }))
@@ -326,6 +329,40 @@ export const ExecutiveDashboard: React.FC<DashboardProps> = ({ completedCalls, a
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="p-8 border-b border-gray-50">
+              <h3 className="text-lg font-black text-[#003b6d] uppercase tracking-tight flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-[#0092d0]" />
+                Monthly NPS Data
+              </h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Counts follow the selected performance period</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-gray-50/50">
+                  <tr>
+                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Month</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">No. of Promoters</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">No. of Detractors</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Samples</th>
+                    <th className="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">NPS %</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {stats.trendData.map((row) => (
+                    <tr key={row.sortKey} className="hover:bg-blue-50/30 transition-colors">
+                      <td className="px-8 py-4 text-xs font-black text-gray-700">{row.name}</td>
+                      <td className="px-6 py-4 text-center text-xs font-black text-green-600">{row.promoters}</td>
+                      <td className="px-6 py-4 text-center text-xs font-black text-red-500">{row.detractors}</td>
+                      <td className="px-6 py-4 text-center text-xs font-bold text-gray-600">{row.total}</td>
+                      <td className={`px-8 py-4 text-right text-xs font-black ${row.nps >= npsTarget ? 'text-green-500' : 'text-amber-500'}`}>{row.nps}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
