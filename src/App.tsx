@@ -3,7 +3,7 @@ import { SupervisorModule } from './components/SupervisorModule';
 import { AgentModule } from './components/AgentModule';
 import { AuthModule } from './components/AuthModule';
 import { LayoutDashboard, RefreshCw, LogOut, User as UserIcon } from 'lucide-react';
-import { supabase } from './lib/supabase';
+import { formatSupabaseError, supabase, supabaseConfigError } from './lib/supabase';
 
 export interface Call {
   id: string;
@@ -38,6 +38,7 @@ function App() {
   const [allWorkOrderIds, setAllWorkOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [bootError, setBootError] = useState<string | null>(supabaseConfigError);
 
   const fetchProfile = async (currentSession: any) => {
     if (!currentSession?.user) {
@@ -48,6 +49,7 @@ function App() {
 
     setProfileLoading(true);
     try {
+      setBootError(null);
       const userEmail = currentSession.user.email?.toLowerCase() || '';
       const supervisorEmails = [
         'mrsoemintun@gmail.com',
@@ -116,6 +118,7 @@ function App() {
       }
     } catch (err) {
       console.error('Fatal fetch error:', err);
+      setBootError(formatSupabaseError(err, 'Unable to load your profile.'));
     } finally {
       setProfileLoading(false);
     }
@@ -191,15 +194,29 @@ function App() {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      if (currentSession) fetchProfile(currentSession);
-      else setProfileLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: currentSession } }) => {
+        setSession(currentSession);
+        if (currentSession) {
+          setBootError(null);
+          fetchProfile(currentSession);
+        } else {
+          setProfileLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Session bootstrap error:', err);
+        setBootError(formatSupabaseError(err, 'Unable to load the login screen.'));
+        setProfileLoading(false);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       setSession(currentSession);
-      if (currentSession) fetchProfile(currentSession);
+      if (currentSession) {
+        setBootError(null);
+        fetchProfile(currentSession);
+      }
       else {
         setProfile(null);
         setProfileLoading(false);
@@ -226,7 +243,7 @@ function App() {
     );
   }
 
-  if (!session) return <AuthModule />;
+  if (!session) return <AuthModule initialError={bootError} />;
 
   const isSupervisor = profile?.role?.toLowerCase() === 'supervisor';
 

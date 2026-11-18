@@ -1,15 +1,28 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useEffect, useState } from 'react';
+import { formatSupabaseError, supabase, supabaseConfigError } from '../lib/supabase';
 import { LogIn, ShieldCheck, User } from 'lucide-react';
 
-export const AuthModule = () => {
+interface AuthModuleProps {
+  initialError?: string | null;
+}
+
+export const AuthModule = ({ initialError = null }: AuthModuleProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError || supabaseConfigError);
+
+  useEffect(() => {
+    setError(initialError || supabaseConfigError);
+  }, [initialError]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (supabaseConfigError) {
+      setError(supabaseConfigError);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -31,14 +44,13 @@ export const AuthModule = () => {
 
       if (authError) {
         console.error('Login error details:', authError);
-        // Display specific error code for debugging
-        setError(`${authError.message} (Code: ${authError.status || 'AuthError'})`);
-        throw authError;
+        setError(formatSupabaseError(authError, 'Login failed'));
+        return;
       }
       
       console.log('Login successful for:', data.user?.email);
-    } catch (err: any) {
-      setError(err.message || 'Failed to login');
+    } catch (err) {
+      setError(formatSupabaseError(err, 'Failed to login'));
     } finally {
       setLoading(false);
     }

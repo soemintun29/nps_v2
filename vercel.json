@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/sb",
+      "destination": "https://bdrwkugogscemoakvsat.supabase.co/"
+    },
+    {
+      "source": "/sb/:path*",
+      "destination": "https://bdrwkugogscemoakvsat.supabase.co/:path*"
+    }
+  ]
+}
